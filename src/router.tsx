@@ -3,6 +3,9 @@ import { RequireAuth } from '@/auth/RequireAuth'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { CustomersPage } from '@/pages/CustomersPage'
 import { DashboardPage } from '@/pages/DashboardPage'
+import { InvoiceDetailPage } from '@/pages/InvoiceDetailPage'
+import { EditInvoicePage, NewInvoicePage } from '@/pages/InvoiceEditorPage'
+import { InvoicesPage } from '@/pages/InvoicesPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
 
@@ -17,12 +20,12 @@ export const routes: RouteObject[] = [
     ),
     children: [
       { index: true, element: <DashboardPage /> },
+      { path: 'invoices', element: <InvoicesPage /> },
+      { path: 'invoices/new', element: <NewInvoicePage /> },
+      { path: 'invoices/:id', element: <InvoiceDetailPage /> },
+      { path: 'invoices/:id/edit', element: <EditInvoicePage /> },
       {
-        path: 'invoices',
-        element: <PlaceholderPage title="Invoices" description="List, issue, pay and void." />,
-      },
-      {
-        path: 'invoices/ai',
+        path: 'ai-draft',
         element: (
           <PlaceholderPage title="AI draft" description="Paste a billing request, review, save." />
         ),

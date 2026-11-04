@@ -53,7 +53,7 @@ describe('DashboardPage', () => {
     expect(await screen.findByText('No invoices yet')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /draft an invoice with ai/i })).toHaveAttribute(
       'href',
-      '/invoices/ai',
+      '/ai-draft',
     )
   })
 

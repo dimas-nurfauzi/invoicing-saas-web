@@ -101,7 +101,7 @@ function EmptyState() {
       </CardHeader>
       <CardContent className="flex flex-wrap gap-2">
         <Button asChild>
-          <Link to="/invoices/ai">
+          <Link to="/ai-draft">
             <Sparkles /> Draft an invoice with AI
           </Link>
         </Button>

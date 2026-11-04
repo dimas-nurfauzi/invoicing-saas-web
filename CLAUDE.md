@@ -9,6 +9,7 @@ Frontend for the invoicing-saas backend
 the app in two minutes and see the AI draft feature. Not a full product.
 
 Screens (MVP):
+
 1. Login + tenant sign-up (`POST /api/tenants`, `POST /api/auth/login` with tenantSlug +
    email + password)
 2. Dashboard: billing summary per currency (`GET /api/summary`)
@@ -45,6 +46,7 @@ The backend runs separately (its README): PostgreSQL via Docker Compose, then
 ## Rules
 
 ### API
+
 - Types come only from `src/api/schema.d.ts`, generated from the committed
   `openapi.json` by `scripts/gen-api-types.mjs`. Never edit the generated file; CI fails
   if it doesn't match the snapshot.
@@ -56,18 +58,21 @@ The backend runs separately (its README): PostgreSQL via Docker Compose, then
 - Never send a tenant id: the backend takes it from the token only.
 
 ### Money
+
 - Money, quantities and percentages are **decimal strings** in requests and responses
   (`"1500000.00"`). Never `parseFloat`/`Number()` them, never compute totals in the
   browser: totals come from the backend (`InvoiceCalculator`, AI `previewTotal`).
 - Format with `src/lib/money.ts` (always 2 decimals).
 
 ### Auth
+
 - Access token (1 h, no refresh token yet) is kept in `sessionStorage` and sent as a
   bearer token. On 401, clear it and go to login. Don't log tokens or passwords.
 - Role checks in the UI (e.g. hide Void for STAFF) are convenience only; the backend
   enforces them.
 
 ### AI feature
+
 - The draft is untrusted until the user reviews it. Show the backend's `warnings`. Saving
   is an explicit user action through the normal `POST /api/invoices` with the same form
   validation as manual entry. `customerId` may be null: the user must pick a customer.
@@ -75,6 +80,7 @@ The backend runs separately (its README): PostgreSQL via Docker Compose, then
 - Don't log the pasted text.
 
 ### Testing
+
 - Unit/component tests with Vitest; mock the network at the fetch level, not the
   components.
 - E2E (Playwright) runs against the real backend + PostgreSQL; only the AI endpoint is

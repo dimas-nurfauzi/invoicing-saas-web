@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Plus, Trash2 } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { useFieldArray, useForm, type FieldError } from 'react-hook-form'
+import { Controller, useFieldArray, useForm, type FieldError } from 'react-hook-form'
 import { Link } from 'react-router'
 import type { Schemas } from '@/api/client'
 import { FormField } from '@/components/FormField'
@@ -77,24 +77,31 @@ export function InvoiceForm({
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <div className="grid gap-1.5 sm:col-span-2">
             <Label htmlFor="invoice-customer">Customer</Label>
-            <NativeSelect
-              id="invoice-customer"
-              disabled={customers.isPending}
-              aria-invalid={errors.customerId ? true : undefined}
-              aria-describedby={errors.customerId ? 'invoice-customer-error' : undefined}
-              {...register('customerId')}
-            >
-              <option value="">{customers.isPending ? 'Loading…' : 'Select a customer'}</option>
-              {missingCurrent && (
-                <option value={missingCurrent.id}>{missingCurrent.name} (archived)</option>
+            {/* Controlled, so a preselected customer shows up once the options arrive. */}
+            <Controller
+              control={control}
+              name="customerId"
+              render={({ field }) => (
+                <NativeSelect
+                  id="invoice-customer"
+                  disabled={customers.isPending}
+                  aria-invalid={errors.customerId ? true : undefined}
+                  aria-describedby={errors.customerId ? 'invoice-customer-error' : undefined}
+                  {...field}
+                >
+                  <option value="">{customers.isPending ? 'Loading…' : 'Select a customer'}</option>
+                  {missingCurrent && (
+                    <option value={missingCurrent.id}>{missingCurrent.name} (archived)</option>
+                  )}
+                  {options.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                      {c.email ? ` · ${c.email}` : ''}
+                    </option>
+                  ))}
+                </NativeSelect>
               )}
-              {options.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                  {c.email ? ` · ${c.email}` : ''}
-                </option>
-              ))}
-            </NativeSelect>
+            />
             {errors.customerId && (
               <p id="invoice-customer-error" className="text-sm text-destructive">
                 {errors.customerId.message}

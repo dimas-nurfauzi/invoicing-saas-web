@@ -51,7 +51,7 @@ describe('AiDraftPage', () => {
     expect(await screen.findByText(/pick one before saving/)).toBeInTheDocument()
     expect(screen.getByText(/8\.325\.000,00/)).toBeInTheDocument()
     expect(screen.getByLabelText('Line 1 description')).toHaveValue('Website redesign')
-    expect(screen.getByLabelText('Line 1 unit price')).toHaveValue('7500000.00')
+    expect(screen.getByLabelText('Line 1 unit price')).toHaveValue('7.500.000')
     expect(screen.getByLabelText('Line 1 discount %')).toHaveValue('')
     expect(requestsTo(fetchMock, 'POST /api/invoices')).toHaveLength(0)
 

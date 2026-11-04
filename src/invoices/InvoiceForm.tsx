@@ -178,7 +178,10 @@ export function InvoiceForm({
               >
                 {cell('description', 'description')}
                 {cell('quantity', 'quantity', { inputMode: 'decimal' })}
-                {cell('unitPrice', 'unit price', { inputMode: 'decimal' })}
+                {cell('unitPrice', 'unit price', {
+                  inputMode: 'decimal',
+                  placeholder: '1.500.000',
+                })}
                 {cell('discountPercent', 'discount %', { inputMode: 'decimal', placeholder: '0' })}
                 {cell('taxRatePercent', 'tax %', { inputMode: 'decimal', placeholder: '0' })}
                 <Button
@@ -211,8 +214,8 @@ export function InvoiceForm({
             </Button>
           </div>
           <p className="text-sm text-muted-foreground">
-            Use a dot for decimals (1500000.50). Totals, discounts and tax are calculated by the
-            server when you save.
+            Write numbers the Indonesian way: 1.500.000,50 (dot for thousands, comma for decimals).
+            Totals, discounts and tax are calculated by the server when you save.
           </p>
         </CardContent>
       </Card>

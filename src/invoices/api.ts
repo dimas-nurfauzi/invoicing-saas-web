@@ -1,6 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, unwrap, type Schemas } from '@/api/client'
-import type { InvoiceFormOutput, PaymentForm } from './schemas'
+import type { InvoiceFormOutput, PaymentFormOutput } from './schemas'
 import type { InvoiceStatus } from './types'
 
 export const PAGE_SIZE = 20
@@ -116,7 +116,7 @@ export function useVoidInvoice(id: string) {
 export function useRecordPayment(invoiceId: string) {
   const invalidate = useInvalidate()
   return useMutation({
-    mutationFn: (values: PaymentForm) =>
+    mutationFn: (values: PaymentFormOutput) =>
       unwrap(
         api.POST('/api/invoices/{invoiceId}/payments', {
           params: { path: { invoiceId } },

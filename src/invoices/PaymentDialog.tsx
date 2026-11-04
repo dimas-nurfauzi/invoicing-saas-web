@@ -17,8 +17,9 @@ import { Label } from '@/components/ui/label'
 import { todayIso } from '@/lib/dates'
 import { errorMessage } from '@/lib/errors'
 import { formatMoney } from '@/lib/money'
+import { toInputDecimal } from '@/lib/number-utils'
 import { useRecordPayment } from './api'
-import { paymentSchema, type PaymentForm } from './schemas'
+import { paymentSchema, type PaymentForm, type PaymentFormOutput } from './schemas'
 import { PAYMENT_METHODS, type Invoice } from './types'
 
 interface PaymentDialogProps {
@@ -50,10 +51,10 @@ function PaymentFormBody({ invoice, onDone }: { invoice: Invoice; onDone: () => 
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<PaymentForm>({
+  } = useForm<PaymentForm, unknown, PaymentFormOutput>({
     resolver: zodResolver(paymentSchema),
     defaultValues: {
-      amount: invoice.balanceDue ?? '',
+      amount: toInputDecimal(invoice.balanceDue),
       paidOn: todayIso(),
       method: 'BANK_TRANSFER',
       reference: '',

@@ -21,11 +21,11 @@ describe('new invoice', () => {
     const { router } = renderApp('/invoices/new')
     await screen.findByRole('option', { name: /Acme Corp/ })
 
-    await userEvent.type(screen.getByLabelText('Line 1 unit price'), '1.500.000')
+    await userEvent.type(screen.getByLabelText('Line 1 unit price'), '1500000.50')
     await userEvent.click(screen.getByRole('button', { name: 'Save draft' }))
     expect(await screen.findByText('Choose a customer')).toBeInTheDocument()
     expect(screen.getByText('Describe the item')).toBeInTheDocument()
-    expect(screen.getByText(/up to 2 decimals/)).toBeInTheDocument()
+    expect(screen.getByText(/Use , for decimals/)).toBeInTheDocument()
     expect(requestsTo(fetchMock, 'POST /api/invoices')).toHaveLength(0)
 
     await userEvent.selectOptions(screen.getByLabelText('Customer'), 'c1')
@@ -33,7 +33,7 @@ describe('new invoice', () => {
     await userEvent.clear(screen.getByLabelText('Line 1 quantity'))
     await userEvent.type(screen.getByLabelText('Line 1 quantity'), '3')
     await userEvent.clear(screen.getByLabelText('Line 1 unit price'))
-    await userEvent.type(screen.getByLabelText('Line 1 unit price'), '500000.17')
+    await userEvent.type(screen.getByLabelText('Line 1 unit price'), '500.000,17')
     await userEvent.type(screen.getByLabelText('Line 1 tax %'), '11')
     await userEvent.click(screen.getByRole('button', { name: /add line/i }))
     await userEvent.type(screen.getByLabelText('Line 2 description'), 'Hosting')
@@ -97,7 +97,9 @@ describe('edit draft', () => {
     const description = await screen.findByLabelText('Line 1 description')
     expect(description).toHaveValue('Website redesign')
     await waitFor(() => expect(screen.getByLabelText('Customer')).toHaveValue('c1'))
-    expect(screen.getByLabelText('Line 1 unit price')).toHaveValue('500000.17')
+    expect(screen.getByLabelText('Line 1 unit price')).toHaveValue('500.000,17')
+    expect(screen.getByLabelText('Line 1 quantity')).toHaveValue('3')
+    expect(screen.getByLabelText('Line 1 tax %')).toHaveValue('11')
     expect(screen.getByLabelText('Notes')).toHaveValue('Bank BCA 123')
 
     await userEvent.clear(screen.getByLabelText('Notes'))
@@ -108,10 +110,10 @@ describe('edit draft', () => {
     expect(body.notes).toBeUndefined()
     expect(body.lines[0]).toEqual({
       description: 'Website redesign',
-      quantity: '3.000',
+      quantity: '3',
       unitPrice: '500000.17',
-      discountPercent: '0.00',
-      taxRatePercent: '11.00',
+      discountPercent: '0',
+      taxRatePercent: '11',
     })
   })
 

@@ -1,8 +1,10 @@
 import { z } from 'zod'
 import { todayIso } from '@/lib/dates'
+import { DECIMAL_FORMAT_HINT, parseDecimal } from '@/lib/number-utils'
 
-// Mirrors InvoiceRequest / PaymentRequest / VoidRequest on the backend. Amounts stay decimal
-// strings end to end: the patterns below check them without converting to a JS number.
+// Mirrors InvoiceRequest / PaymentRequest / VoidRequest on the backend. Numbers are typed the
+// Indonesian way ("1.500.000,50"); parsing turns them into the API's decimal strings
+// ("1500000.50"), and the patterns below check those without converting to a JS number.
 
 const ZERO = /^0+(\.0+)?$/
 
@@ -15,21 +17,37 @@ export const PERCENT = /^(100(\.0{1,2})?|\d{1,2}(\.\d{1,2})?)$/
 /** Payment amount: up to 17 integer digits and 2 decimals, greater than 0. */
 export const AMOUNT = /^\d{1,17}(\.\d{1,2})?$/
 
+/** Input text → API decimal string, or an issue with the format hint. */
+const toApiDecimal = (value: string, ctx: z.RefinementCtx) => {
+  const parsed = parseDecimal(value)
+  if (parsed === null) {
+    ctx.addIssue({ code: 'custom', message: DECIMAL_FORMAT_HINT })
+    return z.NEVER
+  }
+  return parsed
+}
+
 const decimal = (pattern: RegExp, message: string) =>
-  z.string().trim().min(1, 'Required').regex(pattern, message)
+  z
+    .string()
+    .trim()
+    .min(1, 'Required')
+    .transform(toApiDecimal)
+    .pipe(z.string().regex(pattern, message))
 
 const optionalPercent = z
   .string()
   .trim()
-  .refine((v) => v === '' || PERCENT.test(v), '0–100, up to 2 decimals')
+  .transform((v, ctx) => (v === '' ? '' : toApiDecimal(v, ctx)))
+  .pipe(z.string().refine((v) => v === '' || PERCENT.test(v), '0–100, up to 2 decimals'))
 
 export const lineSchema = z.object({
   description: z.string().trim().min(1, 'Describe the item').max(500, 'At most 500 characters'),
-  quantity: decimal(QUANTITY, 'A number, up to 3 decimals (use . for decimals)').refine(
+  quantity: decimal(QUANTITY, 'Up to 9 digits and 3 decimals').refine(
     (v) => !ZERO.test(v),
     'Must be more than 0',
   ),
-  unitPrice: decimal(UNIT_PRICE, 'A number, up to 2 decimals (use . for decimals)'),
+  unitPrice: decimal(UNIT_PRICE, 'Up to 15 digits and 2 decimals'),
   discountPercent: optionalPercent,
   taxRatePercent: optionalPercent,
 })
@@ -64,7 +82,7 @@ export const EMPTY_LINE: InvoiceForm['lines'][number] = {
 }
 
 export const paymentSchema = z.object({
-  amount: decimal(AMOUNT, 'A number, up to 2 decimals (use . for decimals)').refine(
+  amount: decimal(AMOUNT, 'Up to 17 digits and 2 decimals').refine(
     (v) => !ZERO.test(v),
     'Must be more than 0',
   ),
@@ -74,6 +92,7 @@ export const paymentSchema = z.object({
   note: z.string().trim().max(500, 'At most 500 characters'),
 })
 export type PaymentForm = z.input<typeof paymentSchema>
+export type PaymentFormOutput = z.output<typeof paymentSchema>
 
 export const voidSchema = z.object({
   reason: z.string().trim().min(3, 'At least 3 characters').max(500, 'At most 500 characters'),

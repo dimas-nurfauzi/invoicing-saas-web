@@ -8,11 +8,22 @@ import { renderApp, signedIn } from '@/test/render-app'
 describe('InvoiceDetailPage', () => {
   it('shows lines and totals as calculated by the backend', async () => {
     signedIn()
-    mockApi({ 'GET /api/me': me(), 'GET /api/invoices/i1': () => json(draftInvoice) })
+    const lines = [
+      draftInvoice.lines![0],
+      { ...draftInvoice.lines![0], lineNo: 2, description: 'Hosting', quantity: '1.500' },
+    ]
+    mockApi({
+      'GET /api/me': me(),
+      'GET /api/invoices/i1': () => json({ ...draftInvoice, lines }),
+    })
     renderApp('/invoices/i1')
 
     const row = (await screen.findByText('Website redesign')).closest('tr')!
     expect(within(row).getByText('11%')).toBeInTheDocument()
+    expect(within(row).getByText('3')).toBeInTheDocument()
+    // "1.500" from the API is one and a half, shown the Indonesian way (not fifteen hundred).
+    const hosting = screen.getByText('Hosting').closest('tr')!
+    expect(within(hosting).getByText('1,5')).toBeInTheDocument()
     expect(within(row).getByText(/1\.665\.000,57/)).toBeInTheDocument()
     const footer = screen.getByText('Subtotal').closest('tfoot')!
     expect(within(footer).getByText(/1\.500\.000,51/)).toBeInTheDocument()
@@ -71,10 +82,10 @@ describe('InvoiceDetailPage', () => {
     renderApp('/invoices/i1')
     await userEvent.click(await screen.findByRole('button', { name: /record payment/i }))
     const dialog = await screen.findByRole('dialog')
-    expect(within(dialog).getByLabelText('Amount (IDR)')).toHaveValue('1665000.57')
+    expect(within(dialog).getByLabelText('Amount (IDR)')).toHaveValue('1.665.000,57')
 
     await userEvent.clear(within(dialog).getByLabelText('Amount (IDR)'))
-    await userEvent.type(within(dialog).getByLabelText('Amount (IDR)'), '500000')
+    await userEvent.type(within(dialog).getByLabelText('Amount (IDR)'), '500.000,5')
     await userEvent.selectOptions(within(dialog).getByLabelText('Method'), 'CASH')
     await userEvent.type(within(dialog).getByLabelText('Reference'), 'RCPT-9')
     await userEvent.click(within(dialog).getByRole('button', { name: 'Record payment' }))
@@ -82,7 +93,7 @@ describe('InvoiceDetailPage', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     const [post] = requestsTo(fetchMock, 'POST /api/invoices/i1/payments')
     const body = await post.json()
-    expect(body).toMatchObject({ amount: '500000', method: 'CASH', reference: 'RCPT-9' })
+    expect(body).toMatchObject({ amount: '500000.5', method: 'CASH', reference: 'RCPT-9' })
     expect(body.note).toBeUndefined()
   })
 

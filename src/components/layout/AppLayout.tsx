@@ -1,14 +1,22 @@
+import { LogOut } from 'lucide-react'
 import { NavLink, Outlet } from 'react-router'
+import { useAuth } from '@/auth/auth-context'
+import { useMe } from '@/auth/useMe'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 const NAV = [
   { to: '/', label: 'Dashboard', end: true },
-  { to: '/invoices', label: 'Invoices' },
+  { to: '/invoices', label: 'Invoices', end: true },
   { to: '/invoices/ai', label: 'AI draft' },
   { to: '/customers', label: 'Customers' },
 ]
 
 export function AppLayout() {
+  const { session, signOut } = useAuth()
+  const me = useMe()
+
   return (
     <div className="min-h-svh bg-muted/30">
       <header className="border-b bg-background">
@@ -31,6 +39,16 @@ export function AppLayout() {
               </NavLink>
             ))}
           </nav>
+          <div className="ml-auto flex items-center gap-3 text-sm">
+            <span className="text-muted-foreground" title="Workspace">
+              {session?.tenantSlug}
+            </span>
+            {me.data?.role && <Badge variant="secondary">{me.data.role}</Badge>}
+            <Button variant="ghost" size="sm" onClick={() => signOut()}>
+              <LogOut />
+              Sign out
+            </Button>
+          </div>
         </div>
       </header>
       <main className="mx-auto max-w-6xl px-4 py-8">

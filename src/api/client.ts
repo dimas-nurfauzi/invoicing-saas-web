@@ -28,10 +28,16 @@ export class ApiError extends Error {
 }
 
 let accessToken: string | null = null
+let onUnauthorized: (() => void) | null = null
 
 /** Set by the auth module; attached as a bearer token to every request. */
 export function setAccessToken(token: string | null) {
   accessToken = token
+}
+
+/** Called when the backend rejects the current token (401), e.g. because it expired. */
+export function setUnauthorizedHandler(handler: (() => void) | null) {
+  onUnauthorized = handler
 }
 
 const auth: Middleware = {
@@ -39,14 +45,27 @@ const auth: Middleware = {
     if (accessToken) request.headers.set('Authorization', `Bearer ${accessToken}`)
     return request
   },
+  onResponse({ request, response }) {
+    // Only when the rejected request carried the *current* token: a failed login (no token) or
+    // a late response for a token that was already replaced must not sign the user out.
+    const sent = request.headers.get('Authorization')
+    if (response.status === 401 && accessToken && sent === `Bearer ${accessToken}`) {
+      onUnauthorized?.()
+    }
+    return response
+  },
 }
 
 /**
- * Typed API client generated from the backend's OpenAPI spec. Empty base URL = same origin: in
+ * Typed API client generated from the backend's OpenAPI spec. Default base URL = same origin: in
  * development the Vite server proxies /api to Spring Boot. Set VITE_API_BASE_URL to call the
  * backend directly (then the backend needs this origin in CORS_ALLOWED_ORIGINS).
  */
-export const api = createClient<paths>({ baseUrl: import.meta.env.VITE_API_BASE_URL ?? '' })
+export const api = createClient<paths>({
+  baseUrl: import.meta.env.VITE_API_BASE_URL || window.location.origin,
+  // Look up fetch per call (not once at import), so tests can stub it.
+  fetch: (request) => globalThis.fetch(request),
+})
 api.use(auth)
 
 /** Returns the data of a successful response, or throws {@link ApiError}. */

@@ -1,16 +1,21 @@
-import { createBrowserRouter } from 'react-router'
+import { createBrowserRouter, Navigate, type RouteObject } from 'react-router'
+import { RequireAuth } from '@/auth/RequireAuth'
 import { AppLayout } from '@/components/layout/AppLayout'
+import { DashboardPage } from '@/pages/DashboardPage'
+import { LoginPage } from '@/pages/LoginPage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
 
-export const routes = [
+export const routes: RouteObject[] = [
+  { path: '/login', element: <LoginPage /> },
   {
     path: '/',
-    element: <AppLayout />,
+    element: (
+      <RequireAuth>
+        <AppLayout />
+      </RequireAuth>
+    ),
     children: [
-      {
-        index: true,
-        element: <PlaceholderPage title="Dashboard" description="Billing summary per currency." />,
-      },
+      { index: true, element: <DashboardPage /> },
       {
         path: 'invoices',
         element: <PlaceholderPage title="Invoices" description="List, issue, pay and void." />,
@@ -27,6 +32,7 @@ export const routes = [
       },
     ],
   },
+  { path: '*', element: <Navigate to="/" replace /> },
 ]
 
 export const router = createBrowserRouter(routes)

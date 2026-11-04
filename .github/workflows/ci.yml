@@ -42,3 +42,60 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  e2e:
+    # Real backend (public repo, main) + PostgreSQL via its Docker Compose; only the AI endpoint
+    # is mocked inside the test (no ANTHROPIC_API_KEY in CI).
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check out the backend
+        uses: actions/checkout@v4
+        with:
+          repository: dimas-nurfauzi/invoicing-saas
+          ref: main
+          path: backend
+
+      - name: Start backend + PostgreSQL
+        working-directory: backend
+        run: |
+          # Throwaway signing key for this run only; never stored.
+          export JWT_SECRET="$(openssl rand -base64 48)"
+          docker compose --profile app up -d --build
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Wait for the backend
+        run: |
+          for i in $(seq 1 60); do
+            curl -fsS http://localhost:8080/actuator/health && exit 0
+            sleep 3
+          done
+          echo "Backend did not become healthy" >&2
+          exit 1
+
+      - name: E2E (Playwright)
+        run: npm run e2e
+
+      - name: Backend logs
+        if: failure()
+        working-directory: backend
+        run: docker compose --profile app logs app --tail 200
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

@@ -5,8 +5,8 @@ React + TypeScript frontend for
 API (Spring Boot) with an AI feature that turns a pasted billing request into a draft
 invoice. Goal: try the app in two minutes and see the AI draft flow; not a full product.
 
-**Status:** sign-in, workspace sign-up, the dashboard, customers and invoices (drafts,
-issuing, payments, voiding) work. The AI draft comes in the next PR.
+**Status:** all MVP screens work: sign-in and workspace sign-up, dashboard, customers,
+invoices (drafts, issuing, payments, voiding) and the AI draft.
 
 **Stack:** Vite · React 19 · TypeScript · TanStack Query · React Router · Tailwind CSS +
 shadcn/ui · React Hook Form + Zod · Vitest + Testing Library · oxlint + Prettier ·
@@ -36,6 +36,19 @@ Open <http://localhost:5173>, choose **Create workspace**, enter a business name
 a password (8+ characters). That creates a tenant with you as its admin and signs you in. To
 sign in later you need the workspace (the slug shown under the business name), the email and
 the password.
+
+## AI draft
+
+**AI draft** (`/ai-draft`): paste a billing request in any words ("Tagih CV Alpha 3 bulan
+maintenance @ 1,25 jt, diskon 10%, PPN 11%"). The backend asks Claude for a structured draft,
+validates it and answers with the draft, warnings (e.g. no matching customer, assumed due
+date) and a preview total it calculated itself. The frontend shows all of that in the normal
+invoice form; nothing is saved until you click **Save draft**, which goes through the same
+`POST /api/invoices` and validation as a manual invoice.
+
+The backend needs `ANTHROPIC_API_KEY` for this. Without it the endpoint answers 503 and the
+screen says so, with a link to manual entry. The pasted text is sent to the backend only
+and isn't stored or logged by the frontend.
 
 ## Auth
 
@@ -86,6 +99,7 @@ required (and some are nullable).
 ```
 src/
 ├── api/          client.ts (typed client, bearer token, 401 hook, ApiError), schema.d.ts (generated)
+├── ai/           AI draft request hook, draft → form mapping, example text
 ├── auth/         session storage, AuthProvider, RequireAuth, form schemas, useMe
 ├── customers/    API hooks, form schema, add/edit and archive dialogs
 ├── invoices/     API hooks, schemas, InvoiceForm (shared with the AI draft), payment/void dialogs

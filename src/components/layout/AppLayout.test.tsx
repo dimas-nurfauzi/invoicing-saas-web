@@ -6,10 +6,13 @@ import { renderApp, signedIn } from '@/test/render-app'
 describe('AppLayout', () => {
   it('renders the navigation and the active page', async () => {
     signedIn()
-    mockApi({ 'GET /api/me': () => json({ role: 'ADMIN' }) })
+    mockApi({
+      'GET /api/me': () => json({ role: 'ADMIN' }),
+      'GET /api/customers': () => json({ content: [] }),
+    })
     renderApp('/ai-draft')
 
-    expect(await screen.findByText('Paste a billing request, review, save.')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'AI draft' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Customers' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'AI draft' })).toHaveAttribute('aria-current', 'page')
     expect(screen.getByRole('link', { name: 'Invoices' })).not.toHaveAttribute('aria-current')

@@ -7,10 +7,10 @@ describe('AppLayout', () => {
   it('renders the navigation and the active page', async () => {
     signedIn()
     mockApi({ 'GET /api/me': () => json({ role: 'ADMIN' }) })
-    renderApp('/customers')
+    renderApp('/invoices')
 
-    expect(await screen.findByText('List, search, add and edit.')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Invoices' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Customers' })).toHaveAttribute('aria-current', 'page')
+    expect(await screen.findByText('List, issue, pay and void.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Customers' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Invoices' })).toHaveAttribute('aria-current', 'page')
   })
 })

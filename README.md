@@ -79,7 +79,24 @@ and isn't stored or logged by the frontend.
 | `npm test`          | Unit tests (Vitest, jsdom)                                                                             |
 | `npm run lint`      | oxlint + Prettier check (`npm run format` fixes formatting)                                            |
 | `npm run typecheck` | TypeScript only                                                                                        |
+| `npm run e2e`       | Playwright end-to-end test against a running backend (see below)                                       |
 | `npm run gen:api`   | Fetch `/v3/api-docs` from a running backend into `openapi.json`, then regenerate `src/api/schema.d.ts` |
+
+## End-to-end test
+
+`e2e/ai-draft.spec.ts` walks the main flow in Chromium: create a workspace, add a customer,
+paste a billing request, review the AI draft, pick the customer, save, issue, and check the
+dashboard. It runs against the real backend and PostgreSQL; only
+`POST /api/invoices/ai-draft` is answered by the test (no API key needed, deterministic).
+
+```bash
+# backend running on :8080 (backend README), then:
+npx playwright install chromium   # once
+npm run e2e                        # starts the Vite dev server if it isn't running
+```
+
+In CI the `e2e` job checks out the backend repo, starts it with
+`docker compose --profile app up -d --build` (throwaway `JWT_SECRET`) and runs the same test.
 
 ## API types
 

@@ -8,8 +8,8 @@ import { cn } from '@/lib/utils'
 
 const NAV = [
   { to: '/', label: 'Dashboard', end: true },
-  { to: '/invoices', label: 'Invoices', end: true },
-  { to: '/invoices/ai', label: 'AI draft' },
+  { to: '/invoices', label: 'Invoices' },
+  { to: '/ai-draft', label: 'AI draft' },
   { to: '/customers', label: 'Customers' },
 ]
 

@@ -74,7 +74,8 @@ test('sign up, draft an invoice with AI, save and issue it', async ({ page }) =>
   // 4. Review: warnings and preview shown; nothing saved until the user acts.
   await expect(page.getByText('pick one before saving')).toBeVisible()
   await expect(page.getByText('Rp 12.071.250,00')).toBeVisible()
-  await expect(page.getByLabel('Line 2 discount %')).toHaveValue('10.00')
+  await expect(page.getByLabel('Line 1 unit price')).toHaveValue('7.500.000')
+  await expect(page.getByLabel('Line 2 discount %')).toHaveValue('10')
   await page.getByLabel('Customer').selectOption({ label: 'PT Maju Jaya · finance@majujaya.test' })
   await page.getByRole('button', { name: 'Save draft' }).click()
 

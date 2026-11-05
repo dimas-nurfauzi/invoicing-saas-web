@@ -5,7 +5,7 @@ import { invoiceSchema, lineSchema, paymentSchema } from './schemas'
 const line = {
   description: 'Design',
   quantity: '1',
-  unitPrice: '1500000',
+  unitPrice: '1.500.000,50',
   discountPercent: '',
   taxRatePercent: '11',
 }
@@ -22,16 +22,19 @@ describe('invoice schemas', () => {
   it.each([
     ['quantity', '0', false],
     ['quantity', '0.000', false],
-    ['quantity', '1.5', true],
-    ['quantity', '1.2345', false],
-    ['unitPrice', '1500000.50', true],
-    ['unitPrice', '1.500.000', false],
-    ['unitPrice', '1500000,50', false],
+    ['quantity', '1,5', true],
+    ['quantity', '1,2345', false],
+    ['quantity', '1.5', false],
+    ['unitPrice', '1.500.000,50', true],
+    ['unitPrice', '1.500.000', true],
+    ['unitPrice', '1500000,50', true],
+    ['unitPrice', '1500000.50', false],
+    ['unitPrice', '1,505', false],
     ['unitPrice', '-1', false],
     ['unitPrice', '0', true],
     ['taxRatePercent', '100', true],
-    ['taxRatePercent', '100.01', false],
-    ['taxRatePercent', '11.5', true],
+    ['taxRatePercent', '100,01', false],
+    ['taxRatePercent', '11,5', true],
     ['discountPercent', '', true],
   ])('%s %j valid: %s', (field, value, valid) => {
     expect(lineSchema.safeParse({ ...line, [field]: value }).success).toBe(valid)
@@ -50,7 +53,7 @@ describe('invoice schemas', () => {
         {
           description: 'Design',
           quantity: '1',
-          unitPrice: '1500000',
+          unitPrice: '1500000.50',
           discountPercent: undefined,
           taxRatePercent: '11',
         },
@@ -65,9 +68,15 @@ describe('invoice schemas', () => {
   })
 
   it('rejects a payment dated in the future or of zero', () => {
-    const base = { amount: '10', paidOn: '2026-01-01', method: 'CASH', reference: '', note: '' }
-    expect(paymentSchema.safeParse(base).success).toBe(true)
-    expect(paymentSchema.safeParse({ ...base, amount: '0.00' }).success).toBe(false)
+    const base = {
+      amount: '1.000,5',
+      paidOn: '2026-01-01',
+      method: 'CASH',
+      reference: '',
+      note: '',
+    }
+    expect(paymentSchema.parse(base).amount).toBe('1000.5')
+    expect(paymentSchema.safeParse({ ...base, amount: '0,00' }).success).toBe(false)
     expect(paymentSchema.safeParse({ ...base, paidOn: '2999-01-01' }).success).toBe(false)
   })
 })

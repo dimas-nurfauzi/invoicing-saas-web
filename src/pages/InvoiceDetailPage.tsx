@@ -25,6 +25,7 @@ import { VoidDialog } from '@/invoices/VoidDialog'
 import { formatDate, formatDateTime } from '@/lib/dates'
 import { errorMessage } from '@/lib/errors'
 import { formatMoney } from '@/lib/money'
+import { toInputDecimal } from '@/lib/number-utils'
 
 type DialogName = 'issue' | 'delete' | 'pay' | 'void' | null
 
@@ -176,7 +177,9 @@ function InvoiceView({ invoice }: { invoice: Invoice }) {
             {lines.map((line, i) => (
               <TableRow key={line.lineNo ?? i}>
                 <TableCell className="pl-4 whitespace-normal">{line.description}</TableCell>
-                <TableCell className="text-right tabular-nums">{line.quantity}</TableCell>
+                <TableCell className="text-right tabular-nums">
+                  {toInputDecimal(line.quantity, { trimZeros: true })}
+                </TableCell>
                 <TableCell className="text-right tabular-nums">{money(line.unitPrice)}</TableCell>
                 <TableCell className="text-right tabular-nums">
                   {percent(line.discountPercent)}
@@ -326,5 +329,5 @@ function Info({ label, children }: { label: string; children: React.ReactNode })
 
 function percent(value?: string) {
   if (!value || /^0+(\.0+)?$/.test(value)) return '—'
-  return `${value.replace(/\.?0+$/, '')}%`
+  return `${toInputDecimal(value, { trimZeros: true })}%`
 }

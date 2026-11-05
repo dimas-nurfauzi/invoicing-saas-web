@@ -8,6 +8,7 @@ import { newInvoiceDefaults } from '@/invoices/defaults'
 import type { InvoiceForm as InvoiceFormValues } from '@/invoices/schemas'
 import type { Invoice } from '@/invoices/types'
 import { errorMessage } from '@/lib/errors'
+import { toInputDecimal } from '@/lib/number-utils'
 
 function fromInvoice(invoice: Invoice): InvoiceFormValues {
   return {
@@ -18,10 +19,10 @@ function fromInvoice(invoice: Invoice): InvoiceFormValues {
     notes: invoice.notes ?? '',
     lines: (invoice.lines ?? []).map((line) => ({
       description: line.description ?? '',
-      quantity: line.quantity ?? '',
-      unitPrice: line.unitPrice ?? '',
-      discountPercent: line.discountPercent ?? '',
-      taxRatePercent: line.taxRatePercent ?? '',
+      quantity: toInputDecimal(line.quantity, { trimZeros: true }),
+      unitPrice: toInputDecimal(line.unitPrice),
+      discountPercent: toInputDecimal(line.discountPercent, { trimZeros: true }),
+      taxRatePercent: toInputDecimal(line.taxRatePercent, { trimZeros: true }),
     })),
   }
 }
